@@ -19,6 +19,36 @@
             overflow: hidden; user-select: none;
         }
 
+        /* --- BOOT SCREEN --- */
+        #boot-screen {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: black; display: flex; justify-content: center; align-items: center;
+            z-index: 99999; transition: opacity 1s ease-in-out;
+        }
+        .boot-content { 
+            display: flex; flex-direction: column; align-items: center; 
+            gap: 150px; /* Increased gap to make logo higher */
+            margin-top: -50px; 
+        }
+        .boot-logo { 
+            width: 100px; 
+            /* Windows Blue Filter */
+            filter: invert(31%) sepia(94%) saturate(2353%) hue-rotate(193deg) brightness(91%) contrast(101%);
+        }
+        .spinner { position: relative; width: 40px; height: 40px; }
+        .dot { position: absolute; width: 100%; height: 100%; animation: spin 3.5s infinite cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; }
+        .dot::after { content: ""; position: absolute; width: 4px; height: 4px; background: white; border-radius: 50%; }
+        .dot:nth-child(2) { animation-delay: 0.15s; }
+        .dot:nth-child(3) { animation-delay: 0.3s; }
+        .dot:nth-child(4) { animation-delay: 0.45s; }
+        .dot:nth-child(5) { animation-delay: 0.6s; }
+        @keyframes spin {
+            0% { transform: rotate(0deg); opacity: 1; }
+            80% { transform: rotate(720deg); opacity: 1; }
+            100% { transform: rotate(900deg); opacity: 0; }
+        }
+        .hide-boot { opacity: 0; pointer-events: none; }
+
         /* --- ICONS --- */
         .notepad-icon-fix { width: 24px !important; height: 32px; object-fit: contain; }
         .logo-solitaire { width: 24px; height: 32px; background: white; border-radius: 3px; border: 1px solid #bbb; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #e81123; font-size: 18px; box-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
@@ -26,7 +56,6 @@
         .logo-minesweeper::before { content: ''; position: absolute; width: 34px; height: 4px; top: 12px; left: -5px; background: #000; }
         .logo-minesweeper::after { content: ''; position: absolute; width: 4px; height: 34px; top: -5px; left: 12px; background: #000; }
         
-        /* Search Icon Style */
         .search-btn { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 4px; transition: 0.2s; }
         .search-btn:hover { background: rgba(255,255,255,0.3); }
         .glass-circ { width: 14px; height: 14px; border: 2px solid #333; border-radius: 50%; position: relative; transform: rotate(-45deg); margin-left: -3px; margin-top: -3px; }
@@ -97,12 +126,21 @@
         .taskbar-right { position: absolute; right: 10px; font-size: 10px; text-align: right; color: #333; display: block; }
         
         @media (max-width: 600px) {
-            .taskbar-right { display: none; } /* Hide time on very small screens to save space */
+            .taskbar-right { display: none; }
             .window { top: 0; left: 0; width: 100vw; height: calc(100% - 48px); border-radius: 0; }
         }
     </style>
 </head>
 <body onclick="closeStart(event)">
+
+    <div id="boot-screen">
+        <div class="boot-content">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/8/87/Windows_logo_-_2021.svg" class="boot-logo">
+            <div class="spinner">
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            </div>
+        </div>
+    </div>
 
     <div class="taskbar">
         <img src="https://upload.wikimedia.org/wikipedia/commons/8/87/Windows_logo_-_2021.svg" class="taskbar-icon" onclick="toggleStart(event)">
@@ -171,6 +209,16 @@
     <script>
         let highestZ = 1000;
         let cVal = "0";
+
+        // Boot logic
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const boot = document.getElementById('boot-screen');
+                boot.classList.add('hide-boot');
+                setTimeout(() => boot.style.display = 'none', 1000);
+            }, 4000); // 4 seconds of booting
+        });
+
         function cIn(v) { cVal = cVal === "0" ? v : cVal + v; updateC(); }
         function cClear() { cVal = "0"; updateC(); }
         function cSolve() { try { cVal = eval(cVal).toString(); } catch { cVal = "Error"; } updateC(); }
@@ -180,7 +228,6 @@
             if(!val) return;
             document.getElementById('google-home').style.display = 'none';
             const frame = document.getElementById('chrome-frame');
-            const urlBar = document.getElementById('chrome-url');
             frame.style.display = 'block';
             let dest = val.trim();
             if (/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(dest)) {
@@ -189,7 +236,7 @@
                 dest = `https://www.bing.com/search?q=${encodeURIComponent(dest)}&igu=1`;
             }
             frame.src = dest;
-            urlBar.value = dest;
+            document.getElementById('chrome-url').value = dest;
         }
 
         function goHome() {
@@ -224,7 +271,7 @@
         function closeStart(e) { if(!e.target.closest('#start-menu')) document.getElementById('start-menu').classList.remove('active'); }
         
         function dragStart(e, id) {
-            if(window.innerWidth < 600) return; // Disable drag on mobile
+            if(window.innerWidth < 600) return;
             let w = document.getElementById(id); w.style.zIndex = ++highestZ;
             let ox = e.clientX - w.offsetLeft, oy = e.clientY - w.offsetTop;
             document.onmousemove = (ev) => { w.style.left = (ev.clientX - ox) + 'px'; w.style.top = (ev.clientY - oy) + 'px'; };
