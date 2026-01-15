@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windows 11</title>
+    <style>
+        :root {
+            --accent: #0078d4;
+            --mika: rgba(255, 255, 255, 0.9);
+            --taskbar-bg: rgba(243, 243, 243, 0.85);
+            --win-bg: #f3f3f3;
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100%;
+            font-family: 'Segoe UI Variable', 'Segoe UI', sans-serif;
+            background: url('https://wallpaperaccess.com/full/6708614.jpg') center/cover no-repeat;
+            overflow: hidden; user-select: none;
+        }
+
+        /* --- ICONS --- */
+        .notepad-icon-fix { width: 24px !important; height: 32px; object-fit: contain; }
+        .logo-solitaire { width: 24px; height: 32px; background: white; border-radius: 3px; border: 1px solid #bbb; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #e81123; font-size: 18px; box-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
+        .logo-minesweeper { width: 28px; height: 28px; background: #333; border-radius: 50%; position: relative; border: 2px solid #000; }
+        .logo-minesweeper::before { content: ''; position: absolute; width: 34px; height: 4px; top: 12px; left: -5px; background: #000; }
+        .logo-minesweeper::after { content: ''; position: absolute; width: 4px; height: 34px; top: -5px; left: 12px; background: #000; }
+        
+        /* Search Icon Style */
+        .search-btn { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 4px; transition: 0.2s; }
+        .search-btn:hover { background: rgba(255,255,255,0.3); }
+        .glass-circ { width: 14px; height: 14px; border: 2px solid #333; border-radius: 50%; position: relative; transform: rotate(-45deg); margin-left: -3px; margin-top: -3px; }
+        .glass-circ::after { content: ''; position: absolute; width: 2px; height: 7px; background: #333; bottom: -7px; left: 6px; }
+
+        /* --- START MENU --- */
+        #start-menu {
+            position: fixed; bottom: -750px; left: 50%; transform: translateX(-50%);
+            width: 580px; max-width: 95vw; height: 550px; background: rgba(243, 243, 243, 0.85);
+            backdrop-filter: blur(40px); border-radius: 8px; border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 0 10px 50px rgba(0,0,0,0.3); transition: 0.4s cubic-bezier(0.1, 0.9, 0.2, 1);
+            z-index: 10001; padding: 0; display: flex; flex-direction: column;
+        }
+        #start-menu.active { bottom: 60px; }
+        
+        .start-search-box { padding: 30px 30px 10px 30px; }
+        .start-search-box input {
+            width: 100%; padding: 10px 15px; border-radius: 4px; border: 1px solid #ddd;
+            border-bottom: 2px solid var(--accent); outline: none; background: white;
+            box-sizing: border-box; font-size: 14px;
+        }
+
+        .start-apps-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 10px; padding: 20px 30px;
+        }
+        .start-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; border-radius: 4px; padding: 10px; transition: 0.2s; }
+        .start-item:hover { background: rgba(255,255,255,0.5); }
+        .start-item span { font-size: 11px; margin-top: 8px; color: #333; text-align: center; }
+
+        /* --- COPILOT SIDEBAR --- */
+        #copilot { 
+            position: fixed; right: -420px; top: 10px; width: 400px; max-width: 85vw; height: calc(100% - 70px); 
+            background: var(--mika); backdrop-filter: blur(30px); transition: 0.4s cubic-bezier(0.1, 0.9, 0.2, 1); 
+            z-index: 9000; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); display: flex; flex-direction: column; 
+            box-shadow: -5px 0 25px rgba(0,0,0,0.15);
+        }
+        #copilot.active { right: 10px; }
+        #chat-area { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+        .bubble { padding: 10px 14px; border-radius: 10px; font-size: 14px; max-width: 85%; line-height: 1.4; }
+        .ai { background: white; align-self: flex-start; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .user { background: var(--accent); color: white; align-self: flex-end; }
+        .chat-input-wrap { padding: 15px; border-top: 1px solid #ddd; display: flex; gap: 8px; }
+        .chat-input-wrap input { flex: 1; padding: 10px; border-radius: 20px; border: 1px solid #ccc; outline: none; }
+
+        /* --- WINDOW SYSTEM --- */
+        .window { position: absolute; top: 5%; left: 2.5%; width: 95%; max-width: 1000px; background: var(--win-bg); border-radius: 8px; box-shadow: 0 15px 40px rgba(0,0,0,0.3); display: none; flex-direction: column; overflow: hidden; z-index: 500; border: 1px solid rgba(0,0,0,0.1); }
+        .win-header { background: #fff; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; cursor: grab; }
+        .close-btn { padding: 5px 12px; cursor: pointer; font-size: 18px; border-radius: 4px; }
+        .close-btn:hover { background: #e81123; color: white; }
+        .app-iframe { flex: 1; border: none; background: white; min-height: 300px; }
+
+        /* --- CALCULATOR --- */
+        #calc-display { width: 100%; height: 60px; text-align: right; font-size: 24px; border: none; padding: 10px; box-sizing: border-box; background: white; outline: none; }
+        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: #ddd; }
+        .calc-grid button { height: 45px; border: none; background: white; cursor: pointer; font-size: 14px; }
+
+        /* --- CHROME --- */
+        .chrome-nav { background:#fff; padding:8px 15px; border-bottom:1px solid #eee; display:flex; align-items:center; gap:12px; }
+        .chrome-url-bar { flex:1; padding:7px 18px; border-radius:20px; border:1px solid #dfe1e5; outline:none; font-size:13px; background:#f1f3f4; min-width: 0; }
+        #google-home { flex: 1; background: white; display: flex; flex-direction: column; align-items: center; padding-top: 40px; }
+        .google-logo { font-family: 'Product Sans', Arial, sans-serif; font-size: clamp(40px, 10vw, 80px); font-weight: 500; letter-spacing: -3px; margin-bottom: 25px; }
+        .g-b { color: #4285F4; } .g-r { color: #EA4335; } .g-y { color: #FBBC05; } .g-g { color: #34A853; }
+
+        /* --- TASKBAR --- */
+        .taskbar { position: fixed; bottom: 0; width: 100%; height: 48px; background: var(--taskbar-bg); backdrop-filter: blur(25px); display: flex; justify-content: center; align-items: center; z-index: 10000; }
+        .taskbar-icon { width: 28px; height: 28px; padding: 6px; cursor: pointer; transition: 0.2s; margin: 0 2px; }
+        .taskbar-icon:hover { background: rgba(255,255,255,0.3); border-radius: 4px; }
+        .taskbar-right { position: absolute; right: 10px; font-size: 10px; text-align: right; color: #333; display: block; }
+        
+        @media (max-width: 600px) {
+            .taskbar-right { display: none; } /* Hide time on very small screens to save space */
+            .window { top: 0; left: 0; width: 100vw; height: calc(100% - 48px); border-radius: 0; }
+        }
+    </style>
+</head>
+<body onclick="closeStart(event)">
+
+    <div class="taskbar">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/8/87/Windows_logo_-_2021.svg" class="taskbar-icon" onclick="toggleStart(event)">
+        <div class="search-btn" onclick="toggleStart(event)">
+            <div class="glass-circ"></div>
+        </div>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Google_Chrome_icon_%28February_2022%29.svg/960px-Google_Chrome_icon_%28February_2022%29.svg.png" class="taskbar-icon" onclick="openWindow('win-chrome')">
+        <img src="https://en.wikipedia.org/wiki/Special:Redirect/file/Microsoft_Copilot_Icon.svg" class="taskbar-icon" onclick="toggleCopilot()">
+        <img src="https://vectorseek.com/wp-content/uploads/2023/12/Notepad-Win11-Logo-Vector.svg-.png" class="taskbar-icon notepad-icon-fix" onclick="openWindow('win-notepad')">
+        <div class="taskbar-right"><div id="time" style="font-weight:bold;">12:00 PM</div><div id="date">1/14/2026</div></div>
+    </div>
+
+    <div id="start-menu">
+        <div class="start-search-box">
+            <input type="text" placeholder="Search for apps..." onkeydown="if(event.key==='Enter') { openWindow('win-chrome'); navigateChrome(this.value); this.value=''; }">
+        </div>
+        <div class="start-apps-grid">
+            <div class="start-item" onclick="openWindow('win-chrome')"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Google_Chrome_icon_%28February_2022%29.svg/960px-Google_Chrome_icon_%28February_2022%29.svg.png" width="32"><span>Chrome</span></div>
+            <div class="start-item" onclick="openWindow('win-calc')"><img src="https://upload.wikimedia.org/wikipedia/commons/5/55/Windows_Calculator_icon.png" width="32"><span>Calculator</span></div>
+            <div class="start-item" onclick="openWindow('win-notepad')"><img src="https://vectorseek.com/wp-content/uploads/2023/12/Notepad-Win11-Logo-Vector.svg-.png" class="notepad-icon-fix"><span>Notepad</span></div>
+            <div class="start-item" onclick="openWindow('win-solitaire')"><div class="logo-solitaire">♥</div><span>Solitaire</span></div>
+            <div class="start-item" onclick="openWindow('win-minesweeper')"><div class="logo-minesweeper"></div><span>Mines</span></div>
+        </div>
+    </div>
+
+    <div id="copilot">
+        <div style="padding:15px; border-bottom:1px solid #ddd; font-weight:bold; display:flex; align-items:center; gap:10px;">
+            <img src="https://en.wikipedia.org/wiki/Special:Redirect/file/Microsoft_Copilot_Icon.svg" width="20"> Copilot
+            <span style="margin-left:auto; cursor:pointer;" onclick="toggleCopilot()">×</span>
+        </div>
+        <div id="chat-area"><div class="bubble ai">Hi, I'm Copilot. How can I help?</div></div>
+        <div class="chat-input-wrap">
+            <input type="text" id="chat-input" placeholder="Ask me anything..." onkeydown="if(event.key==='Enter') sendToCopilot()">
+            <button onclick="sendToCopilot()" style="border:none; background:none; cursor:pointer; font-size:18px;">➔</button>
+        </div>
+    </div>
+
+    <div id="win-calc" class="window" style="max-width:300px;">
+        <div class="win-header" onmousedown="dragStart(event, 'win-calc')"><span>Calculator</span><div class="close-btn" onclick="closeWindow('win-calc')">×</div></div>
+        <input type="text" id="calc-display" value="0" readonly>
+        <div class="calc-grid">
+            <button onclick="cIn('7')">7</button><button onclick="cIn('8')">8</button><button onclick="cIn('9')">9</button><button onclick="cIn('/')">/</button>
+            <button onclick="cIn('4')">4</button><button onclick="cIn('5')">5</button><button onclick="cIn('6')">6</button><button onclick="cIn('*')">*</button>
+            <button onclick="cIn('1')">1</button><button onclick="cIn('2')">2</button><button onclick="cIn('3')">3</button><button onclick="cIn('-')">-</button>
+            <button onclick="cIn('0')">0</button><button onclick="cClear()">C</button><button onclick="cSolve()">=</button><button onclick="cIn('+')">+</button>
+        </div>
+    </div>
+
+    <div id="win-chrome" class="window" style="height:80vh;">
+        <div class="win-header" onmousedown="dragStart(event, 'win-chrome')"><span>Chrome</span><div class="close-btn" onclick="closeWindow('win-chrome')">×</div></div>
+        <div class="chrome-nav">
+            <span style="cursor:pointer;" onclick="goHome()">🏠</span>
+            <input type="text" id="chrome-url" class="chrome-url-bar" placeholder="Search..." onkeydown="if(event.key==='Enter') navigateChrome(this.value)">
+        </div>
+        <div id="google-home">
+            <div class="google-logo"><span class="g-b">G</span><span class="g-r">o</span><span class="g-y">o</span><span class="g-b">g</span><span class="g-g">l</span><span class="g-r">e</span></div>
+            <input type="text" style="width:80%; max-width:500px; padding:12px; border-radius:24px; border:1px solid #dfe1e5;" placeholder="Search Google..." onkeydown="if(event.key==='Enter') navigateChrome(this.value)">
+        </div>
+        <iframe id="chrome-frame" src="about:blank" class="app-iframe" style="display:none;"></iframe>
+    </div>
+
+    <div id="win-notepad" class="window" style="height:60vh;"><div class="win-header" onmousedown="dragStart(event, 'win-notepad')"><span>Notepad</span><div class="close-btn" onclick="closeWindow('win-notepad')">×</div></div><textarea style="width:100%; height:100%; border:none; padding:20px; outline:none; box-sizing:border-box;"></textarea></div>
+    <div id="win-solitaire" class="window" style="height:80vh;"><div class="win-header" onmousedown="dragStart(event, 'win-solitaire')"><span>Solitaire</span><div class="close-btn" onclick="closeWindow('win-solitaire')">×</div></div><iframe src="https://solitaireforfree.com/" class="app-iframe"></iframe></div>
+    <div id="win-minesweeper" class="window" style="height:80vh;"><div class="win-header" onmousedown="dragStart(event, 'win-minesweeper')"><span>Mines</span><div class="close-btn" onclick="closeWindow('win-minesweeper')">×</div></div><iframe src="https://www.minesweeperforfree.com/" class="app-iframe"></iframe></div>
+
+    <script>
+        let highestZ = 1000;
+        let cVal = "0";
+        function cIn(v) { cVal = cVal === "0" ? v : cVal + v; updateC(); }
+        function cClear() { cVal = "0"; updateC(); }
+        function cSolve() { try { cVal = eval(cVal).toString(); } catch { cVal = "Error"; } updateC(); }
+        function updateC() { document.getElementById('calc-display').value = cVal; }
+
+        function navigateChrome(val) {
+            if(!val) return;
+            document.getElementById('google-home').style.display = 'none';
+            const frame = document.getElementById('chrome-frame');
+            const urlBar = document.getElementById('chrome-url');
+            frame.style.display = 'block';
+            let dest = val.trim();
+            if (/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(dest)) {
+                if (!dest.startsWith('http')) dest = 'https://' + dest;
+            } else {
+                dest = `https://www.bing.com/search?q=${encodeURIComponent(dest)}&igu=1`;
+            }
+            frame.src = dest;
+            urlBar.value = dest;
+        }
+
+        function goHome() {
+            document.getElementById('google-home').style.display = 'flex';
+            document.getElementById('chrome-frame').style.display = 'none';
+            document.getElementById('chrome-url').value = "";
+        }
+
+        function toggleCopilot() { document.getElementById('copilot').classList.toggle('active'); }
+        async function sendToCopilot() {
+            let input = document.getElementById('chat-input');
+            let text = input.value.trim(); if(!text) return;
+            addBubble(text, 'user'); input.value = "";
+            let aiBubble = addBubble("Thinking...", 'ai');
+            try {
+                let res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(text)}`);
+                aiBubble.innerText = await res.text();
+            } catch { aiBubble.innerText = "Connection lost."; }
+        }
+        function addBubble(t, c) {
+            let d = document.createElement('div'); d.className = `bubble ${c}`; d.innerText = t;
+            let area = document.getElementById('chat-area'); area.appendChild(d);
+            area.scrollTop = area.scrollHeight; return d;
+        }
+
+        function openWindow(id) { 
+            let w = document.getElementById(id); w.style.display = 'flex'; w.style.zIndex = ++highestZ;
+            document.getElementById('start-menu').classList.remove('active');
+        }
+        function closeWindow(id) { document.getElementById(id).style.display = 'none'; }
+        function toggleStart(e) { e.stopPropagation(); document.getElementById('start-menu').classList.toggle('active'); }
+        function closeStart(e) { if(!e.target.closest('#start-menu')) document.getElementById('start-menu').classList.remove('active'); }
+        
+        function dragStart(e, id) {
+            if(window.innerWidth < 600) return; // Disable drag on mobile
+            let w = document.getElementById(id); w.style.zIndex = ++highestZ;
+            let ox = e.clientX - w.offsetLeft, oy = e.clientY - w.offsetTop;
+            document.onmousemove = (ev) => { w.style.left = (ev.clientX - ox) + 'px'; w.style.top = (ev.clientY - oy) + 'px'; };
+            document.onmouseup = () => { document.onmousemove = null; };
+        }
+
+        setInterval(() => {
+            let d = new Date();
+            document.getElementById('time').innerText = d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+            document.getElementById('date').innerText = d.toLocaleDateString();
+        }, 1000);
+    </script>
+</body>
+</html>
